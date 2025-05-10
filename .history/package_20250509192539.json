@@ -6,9 +6,7 @@
     "dev": "next dev",
     "build": "next build",
     "start": "next start",
-    "lint": "next lint",
-    "format": "prettier --write \"src/**/*.{js,jsx,ts,tsx,json,css,md}\"",
-    "prepare": "husky"
+    "lint": "next lint"
   },
   "dependencies": {
     "next": "15.3.2",
@@ -24,7 +22,6 @@
     "eslint-config-next": "15.3.2",
     "eslint-config-prettier": "^10.1.5",
     "eslint-plugin-prettier": "^5.4.0",
-    "husky": "^9.1.7",
     "prettier": "^3.5.3",
     "typescript": "^5"
   }
