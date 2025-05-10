@@ -1,0 +1,15 @@
+#!/bin/sh
+. "$(dirname "$0")/_/husky.sh"
+
+echo "Husky pre-commit hook running..." >&2
+npm run lint
+exit_code=$?
+echo "npm run lint exited with code: $exit_code" >&2
+
+if [ $exit_code -ne 0 ]; then
+  echo "Linting failed. Aborting commit." >&2
+  exit 1
+fi
+
+echo "Linting passed. Proceeding with commit." >&2
+exit 0
