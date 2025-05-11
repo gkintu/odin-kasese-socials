@@ -9,7 +9,7 @@ export default function Home() {
     // The className applies default Next.js styling, which can be customized later.
     <main className="flex min-h-screen flex-col items-center justify-center p-24">
       {/* The heading below is the one targeted by the test. */}
-      <h1>Welcome to Kasese Socials</h1>
+      <h1>Welcome to Kasesse Socials</h1>
 
       {/* The default Next.js structure is retained for now, 
           but it will be replaced as the project evolves. */}
