@@ -2,7 +2,7 @@
 'use client'; // Needed because we handle form submission state/logic here,
 // and LoginForm is interactive.
 
-import React, { useEffect } from 'react';
+import React from 'react';
 import LoginForm from '@/components/Auth/LoginForm'; // Adjust path if necessary
 import { SubmitHandler } from 'react-hook-form'; // For typing form data
 import { useAuthStore } from '@/lib/store/authStore'; // Import the auth store hook
@@ -27,29 +27,10 @@ const LoginPage: React.FC = () => {
   } = useAuthStore(); // Get actions from the auth store
   const router = useRouter(); // Get router instance
 
-  // Add useEffect to show error toast when error state changes
-  useEffect(() => {
-    if (error) {
-      toast.error(`Login failed: ${error}`);
-    }
-  }, [error]);
-
   const handleLogin: SubmitHandler<LoginFormValues> = async (data) => {
     loginRequest(); // Dispatch loginRequest action to set isLoading to true
 
-    // In test environment, skip the delay
-    if (process.env.NODE_ENV === 'test') {
-      if (data.email === 'user@example.com' && data.password === 'password') {
-        loginSuccess(data.email); // Dispatch loginSuccess with email
-        toast.success(`Login successful for ${data.email}!`); // Show success toast
-        router.push('/dashboard'); // Redirect to dashboard
-      } else {
-        loginFailure('Invalid email or password.'); // Dispatch loginFailure with error message
-      }
-      return;
-    }
-
-    // Simulate network delay in non-test environment
+    // Simulate an API call
     console.log('Attempting Kasese Socials Login with:', data);
     await new Promise((resolve) => setTimeout(resolve, 1500)); // Simulate network delay
 

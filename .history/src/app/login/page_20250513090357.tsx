@@ -37,30 +37,22 @@ const LoginPage: React.FC = () => {
   const handleLogin: SubmitHandler<LoginFormValues> = async (data) => {
     loginRequest(); // Dispatch loginRequest action to set isLoading to true
 
-    // In test environment, skip the delay
-    if (process.env.NODE_ENV === 'test') {
+    try {
+      // Simulate an API call
+      console.log('Attempting Kasese Socials Login with:', data);
+      await new Promise((resolve) => setTimeout(resolve, 1500)); // Simulate network delay
+
+      // Dummy validation: In a real app, this comes from the backend response
       if (data.email === 'user@example.com' && data.password === 'password') {
         loginSuccess(data.email); // Dispatch loginSuccess with email
         toast.success(`Login successful for ${data.email}!`); // Show success toast
         router.push('/dashboard'); // Redirect to dashboard
       } else {
         loginFailure('Invalid email or password.'); // Dispatch loginFailure with error message
+        // The error message will be displayed below
       }
-      return;
-    }
-
-    // Simulate network delay in non-test environment
-    console.log('Attempting Kasese Socials Login with:', data);
-    await new Promise((resolve) => setTimeout(resolve, 1500)); // Simulate network delay
-
-    // Dummy validation: In a real app, this comes from the backend response
-    if (data.email === 'user@example.com' && data.password === 'password') {
-      loginSuccess(data.email); // Dispatch loginSuccess with email
-      toast.success(`Login successful for ${data.email}!`); // Show success toast
-      router.push('/dashboard'); // Redirect to dashboard
-    } else {
-      loginFailure('Invalid email or password.'); // Dispatch loginFailure with error message
-      // The error message will be displayed below
+    } catch (error) {
+      loginFailure('An unexpected error occurred.');
     }
   };
 

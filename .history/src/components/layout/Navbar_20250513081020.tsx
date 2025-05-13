@@ -13,9 +13,7 @@ const Navbar: React.FC = () => {
   const router = useRouter();
 
   const handleLogout = () => {
-    const message = isAuthenticated
-      ? 'Successfully logged out.'
-      : 'Guest session ended.';
+    const message = isAuthenticated ? 'Successfully logged out.' : 'Guest session ended.';
     logout(); // This action now clears both auth and guest states
     toast.success(message);
     router.push('/login');
