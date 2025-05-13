@@ -37,7 +37,6 @@ describe('Navbar', () => {
       loginSuccess: jest.fn(),
       loginFailure: jest.fn(),
       loginAsGuest: jest.fn(), // Add new actions from store
-      ...state, // Spread the state to override defaults
     });
   };
 

@@ -36,30 +36,9 @@ describe('Navbar', () => {
       loginRequest: jest.fn(),
       loginSuccess: jest.fn(),
       loginFailure: jest.fn(),
-      loginAsGuest: jest.fn(), // Add new actions from store
-      ...state, // Spread the state to override defaults
+      loginAsGuest: jest.fn() // Add new actions from store
     });
   };
-
-  // Mock authStore state for testing different scenarios
-  // const mockState = {
-  //   isAuthenticated: false,
-  //   user: null,
-  //   isLoading: true,
-  //   error: null,
-  //   login: jest.fn(),
-  //   logout: jest.fn(),
-  //   signup: jest.fn(),
-  //   checkAuth: jest.fn(),
-  // };
-
-  // beforeEach(() => {
-  //   // Reset mocks and store state before each test
-  //   jest.clearAllMocks();
-  //   // Update this line to correctly type the state argument
-  //   // eslint-disable-next-line @typescript-eslint/no-unused-vars
-  //   authStore.setState(mockState as unknown as AuthState); // Explicitly type as AuthState
-  // });
 
   beforeEach(() => {
     mockLogout = jest.fn();
@@ -79,7 +58,7 @@ describe('Navbar', () => {
     setMockAuthState({
       isAuthenticated: true,
       userEmail: 'test@example.com',
-      isGuest: false,
+      isGuest: false
     });
     render(<Navbar />);
     expect(screen.getByText(/welcome, test@example.com/i)).toBeInTheDocument();
@@ -105,7 +84,7 @@ describe('Navbar', () => {
     setMockAuthState({
       isAuthenticated: true,
       userEmail: 'test@example.com',
-      isGuest: false,
+      isGuest: false
     });
     render(<Navbar />);
     fireEvent.click(screen.getByRole('button', { name: /logout/i }));
@@ -123,7 +102,7 @@ describe('Navbar', () => {
     setMockAuthState({
       isAuthenticated: true,
       userEmail: 'test@example.com',
-      isGuest: false,
+      isGuest: false
     });
     render(<Navbar />);
     // Check for Profile link
