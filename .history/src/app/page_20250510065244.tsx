@@ -2,7 +2,7 @@ import Image from 'next/image';
 import styles from './page.module.css';
 
 export default function Home() {
-  const unusedVariable = "test";
+  const unusedVariable = 'test';
   return (
     <div className={styles.page}>
       <main className={styles.main}>

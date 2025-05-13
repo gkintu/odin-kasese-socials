@@ -1,0 +1,83 @@
+import { render, screen, waitFor } from '@testing-library/react';
+import userEvent from '@testing-library/user-event';
+import RegistrationForm from './RegistrationForm'; // This will initially cause an error or warning
+
+describe('RegistrationForm', () => {
+  it('should render email input, password input, and submit button', () => {
+    render(<RegistrationForm onSubmit={jest.fn()} />); // Pass a mock onSubmit for now
+
+    // Using getByLabelText is preferred for accessibility and robustness
+    expect(screen.getByLabelText(/email/i)).toBeInTheDocument();
+    expect(screen.getByLabelText(/password/i)).toBeInTheDocument();
+
+    // For buttons, getByRole is a good choice
+    expect(
+      screen.getByRole('button', { name: /register/i })
+    ).toBeInTheDocument();
+  });
+
+  it('should allow users to enter email and password', async () => {
+    const user = userEvent.setup(); // Set up userEvent
+    render(<RegistrationForm onSubmit={jest.fn()} />);
+    const emailInput = screen.getByLabelText(/email/i) as HTMLInputElement; // Cast for .value
+    const passwordInput = screen.getByLabelText(
+      /password/i
+    ) as HTMLInputElement; // Cast for .value
+
+    await user.type(emailInput, 'test@example.com');
+    await user.type(passwordInput, 'password123');
+
+    expect(emailInput.value).toBe('test@example.com');
+    expect(passwordInput.value).toBe('password123');
+  });
+
+  it('should show error messages for required fields when submitted empty', async () => {
+    const user = userEvent.setup();
+    render(<RegistrationForm onSubmit={jest.fn()} />);
+    const submitButton = screen.getByRole('button', { name: /register/i });
+
+    await user.click(submitButton); // Click without filling anything
+
+    // findByText is useful for elements that appear asynchronously (like error messages after validation)
+    expect(await screen.findByText(/email is required/i)).toBeInTheDocument();
+    expect(
+      await screen.findByText(/password is required/i)
+    ).toBeInTheDocument();
+  });
+
+  it('should show an error message for an invalid email format', async () => {
+    const user = userEvent.setup();
+    render(<RegistrationForm onSubmit={jest.fn()} />);
+    const emailInput = screen.getByLabelText(/email/i) as HTMLInputElement;
+    const passwordInput = screen.getByLabelText(
+      /password/i
+    ) as HTMLInputElement; // Get password input
+    const submitButton = screen.getByRole('button', { name: /register/i });
+
+    await user.type(emailInput, 'invalidemail'); // Type an invalid email
+    await user.type(passwordInput, 'password123'); // Fill password with a valid entry
+    await user.click(submitButton); // Attempt to submit
+
+    // Explicitly wait for the aria-invalid attribute to be true on the email input
+    await waitFor(() => {
+      expect(emailInput).toHaveAttribute('aria-invalid', 'true');
+    });
+
+    // Now that aria-invalid is true, the error message should be present
+    expect(screen.getByText(/invalid email format/i)).toBeInTheDocument();
+  });
+
+  it('should show an error message for a password that is too short', async () => {
+    const user = userEvent.setup();
+    render(<RegistrationForm onSubmit={jest.fn()} />);
+    const passwordInput = screen.getByLabelText(/password/i);
+    const submitButton = screen.getByRole('button', { name: /register/i });
+
+    await user.type(passwordInput, '123'); // Type a short password
+    await user.click(submitButton); // Attempt to submit
+
+    expect(
+      await screen.findByText(/password must be at least 8 characters/i)
+    ).toBeInTheDocument();
+  });
+});
