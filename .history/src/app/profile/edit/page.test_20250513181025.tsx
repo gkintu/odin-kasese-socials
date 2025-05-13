@@ -8,28 +8,20 @@ const toastMocksContainer = {
 };
 
 // Configure the promise mock implementation
-toastMocksContainer.promise = jest
-  .fn()
-  .mockImplementation((promise, options) => {
-    if (options.loading) toastMocksContainer.loading(options.loading);
-    return promise
-      .then((data: unknown) => {
-        const message =
-          typeof options.success === 'function'
-            ? options.success(data)
-            : options.success;
-        toastMocksContainer.success(message);
-        return data;
-      })
-      .catch((error: unknown) => {
-        const message =
-          typeof options.error === 'function'
-            ? options.error(error)
-            : options.error;
-        toastMocksContainer.error(message);
-        throw error;
-      });
-  });
+toastMocksContainer.promise = jest.fn().mockImplementation((promise, options) => {
+  if (options.loading) toastMocksContainer.loading(options.loading);
+  return promise
+    .then((data: unknown) => {
+      const message = typeof options.success === 'function' ? options.success(data) : options.success;
+      toastMocksContainer.success(message);
+      return data;
+    })
+    .catch((error: unknown) => {
+      const message = typeof options.error === 'function' ? options.error(error) : options.error;
+      toastMocksContainer.error(message);
+      throw error;
+    });
+});
 
 // Mock dependencies
 jest.mock('@/lib/store/authStore');
@@ -66,7 +58,30 @@ jest.mock('@/components/profile/EditProfileForm', () => {
   ));
 });
 
-// Toast mocks are already configured above
+// Create the toast mock container
+const toastMocksContainer = {
+  error: jest.fn(),
+  success: jest.fn(),
+  loading: jest.fn(),
+  dismiss: jest.fn(),
+  promise: jest.fn(),
+};
+
+// Configure the promise mock implementation
+toastMocksContainer.promise = jest.fn().mockImplementation((promise, options) => {
+  if (options.loading) toastMocksContainer.loading(options.loading);
+  return promise
+    .then((data: unknown) => {
+      const message = typeof options.success === 'function' ? options.success(data) : options.success;
+      toastMocksContainer.success(message);
+      return data;
+    })
+    .catch((error: unknown) => {
+      const message = typeof options.error === 'function' ? options.error(error) : options.error;
+      toastMocksContainer.error(message);
+      throw error;
+    });
+});
 
 // Mock react-hot-toast with the container
 jest.mock('react-hot-toast', () => ({
@@ -85,17 +100,14 @@ import { useRouter } from 'next/navigation';
 import toast from 'react-hot-toast';
 
 // Define types for clarity
-type JestMockFn<
-  TReturn = unknown,
-  TArgs extends unknown[] = unknown[],
-> = jest.Mock<TReturn, TArgs>;
+type JestMockFn = jest.Mock<any, any[]>;
 
 interface MockToastInterface {
-  error: JestMockFn<void, [message: string]>;
-  success: JestMockFn<void, [message: string]>;
-  loading: JestMockFn<void, [message: string]>;
-  promise: JestMockFn<unknown, [Promise<unknown>, Record<string, unknown>]>;
-  dismiss: JestMockFn<void, []>;
+  error: JestMockFn;
+  success: JestMockFn;
+  loading: JestMockFn;
+  promise: JestMockFn;
+  dismiss: JestMockFn;
 }
 
 interface AuthStoreStateActions {
@@ -104,14 +116,16 @@ interface AuthStoreStateActions {
   isLoading: boolean;
   userEmail: string | null;
   displayName: string | null;
-  updateDisplayName: JestMockFn<Promise<void>, [string]>;
-  loginRequest: JestMockFn<void, []>;
-  loginSuccess: JestMockFn<void, [{ email: string; displayName: string }]>;
-  loginFailure: JestMockFn<void, [string]>;
-  loginAsGuest: JestMockFn<void, []>;
-  logout: JestMockFn<void, []>;
+  updateDisplayName: jest.Mock<any, any[]>;
+  loginRequest: jest.Mock<any, any[]>;
+  loginSuccess: jest.Mock<any, any[]>;
+  loginFailure: jest.Mock<any, any[]>;
+  loginAsGuest: jest.Mock<any, any[]>;
+  logout: jest.Mock<any, any[]>;
   error: string | null;
 }
+// Import the mocked toast to access its mock functions for assertions
+import toast from 'react-hot-toast'; // This will be our mocked toast object (toastMocksContainer)
 
 // Cast the imported toast to our MockToastInterface for type safety in tests
 const mockedToast = toast as unknown as MockToastInterface;
@@ -123,8 +137,8 @@ describe('EditProfilePage', () => {
   >;
   const mockUseRouter = useRouter as jest.MockedFunction<typeof useRouter>;
 
-  let mockPush: JestMockFn<void, [string]>;
-  let mockUpdateDisplayName: JestMockFn<Promise<void>, [string]>;
+  let mockPush: jest.Mock<any, any[]>; // Consistent type
+  let mockUpdateDisplayName: jest.Mock<any, any[]>; // Consistent type
   let defaultAuthStoreState: AuthStoreStateActions;
 
   beforeEach(() => {

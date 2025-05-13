@@ -1,9 +1,9 @@
 // src/components/layout/Navbar.tsx
-'use client';
+'use client'; // This component uses client-side hooks (useAuthStore)
 
 import React from 'react';
-import Link from 'next/link';
-import { useAuthStore } from '@/lib/store/authStore';
+import Link from 'next/link'; // For client-side navigation
+import { useAuthStore } from '@/lib/store/authStore'; // Our Zustand auth store
 import toast from 'react-hot-toast';
 import { useRouter, usePathname } from 'next/navigation';
 
@@ -11,21 +11,20 @@ const Navbar: React.FC = () => {
   const { isAuthenticated, isGuest, userEmail, displayName, logout } =
     useAuthStore();
   const router = useRouter();
-  const pathname = usePathname();
+  const pathname = usePathname(); // Get current path
 
   const handleLogout = () => {
-    const message = isGuest ? 'Guest session ended' : 'Logged out successfully';
     logout();
-    toast.success(message);
+    toast.success(isGuest ? 'Guest session ended' : 'Logged out successfully');
     router.push('/');
   };
 
+  // Do not render Navbar on login or signup pages
   if (pathname === '/login' || pathname === '/signup') {
     return null;
   }
 
-  const displayUsername =
-    displayName || (userEmail ? userEmail.split('@')[0] : '');
+  const displayUsername = displayName || (userEmail ? userEmail.split('@')[0] : '');
 
   return (
     <nav className="bg-gray-800 text-white p-4 shadow-md">
@@ -36,16 +35,11 @@ const Navbar: React.FC = () => {
         <div className="space-x-4 flex items-center">
           {isAuthenticated && !isGuest ? (
             <>
-              <span className="text-sm">Welcome, {displayUsername}!</span>
-              <Link href="/profile" className="hover:text-gray-300">
-                Profile
-              </Link>
-              <Link href="/profile/edit" className="hover:text-gray-300">
-                Edit Profile
-              </Link>
-              <Link href="/dashboard" className="hover:text-gray-300">
-                Dashboard
-              </Link>
+              <span className="text-sm">
+                Welcome, {displayUsername}!
+              </span>
+              <Link href="/profile" className="hover:text-gray-300">Profile</Link>
+              {/* <Link href="/dashboard" className="hover:text-gray-300">Dashboard</Link> */}
               <button
                 onClick={handleLogout}
                 className="bg-red-500 hover:bg-red-700 text-white font-bold py-2 px-4 rounded"
@@ -76,7 +70,6 @@ const Navbar: React.FC = () => {
               </button>
             </>
           ) : (
-            // Not authenticated, not guest
             <>
               <Link
                 href="/login"

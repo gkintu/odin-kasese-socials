@@ -135,9 +135,7 @@ describe('Navbar', () => {
     });
     render(<Navbar />);
     // Check for Profile link specifically
-    expect(
-      screen.getByRole('link', { name: /^Profile$/i })
-    ).toBeInTheDocument();
+    expect(screen.getByRole('link', { name: /^Profile$/i })).toBeInTheDocument();
     // Check for Dashboard link
     expect(
       screen.getByRole('link', { name: /dashboard/i })

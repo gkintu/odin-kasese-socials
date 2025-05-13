@@ -24,8 +24,7 @@ const Navbar: React.FC = () => {
     return null;
   }
 
-  const displayUsername =
-    displayName || (userEmail ? userEmail.split('@')[0] : '');
+  const displayUsername = displayName || (userEmail ? userEmail.split('@')[0] : '');
 
   return (
     <nav className="bg-gray-800 text-white p-4 shadow-md">
@@ -36,16 +35,11 @@ const Navbar: React.FC = () => {
         <div className="space-x-4 flex items-center">
           {isAuthenticated && !isGuest ? (
             <>
-              <span className="text-sm">Welcome, {displayUsername}!</span>
-              <Link href="/profile" className="hover:text-gray-300">
-                Profile
-              </Link>
-              <Link href="/profile/edit" className="hover:text-gray-300">
-                Edit Profile
-              </Link>
-              <Link href="/dashboard" className="hover:text-gray-300">
-                Dashboard
-              </Link>
+              <span className="text-sm">
+                Welcome, {displayUsername}!
+              </span>
+              <Link href="/profile" className="hover:text-gray-300">Profile</Link>
+              <Link href="/dashboard" className="hover:text-gray-300">Dashboard</Link>
               <button
                 onClick={handleLogout}
                 className="bg-red-500 hover:bg-red-700 text-white font-bold py-2 px-4 rounded"

@@ -1,24 +1,34 @@
-// Define toast mock container first
-const toastMocksContainer = {
-  error: jest.fn(),
-  success: jest.fn(),
-  loading: jest.fn(),
-  dismiss: jest.fn(),
-  promise: jest.fn(),
-};
+import React from 'react';
+import { render, screen, waitFor } from '@testing-library/react';
+import userEvent from '@testing-library/user-event';
 
-// Configure the promise mock implementation
-toastMocksContainer.promise = jest
-  .fn()
-  .mockImplementation((promise, options) => {
-    if (options.loading) toastMocksContainer.loading(options.loading);
+// --- Declare types for our mock functions for clarity (optional but good practice) ---
+// Updated JestMockFn type to use jest.Mock<unknown, unknown> instead of jest.Mock<any, any>.
+type JestMockFn = jest.Mock<unknown, unknown>;
+
+interface MockToast {
+  error: JestMockFn;
+  success: JestMockFn;
+  loading: JestMockFn;
+  promise: JestMockFn;
+  dismiss: JestMockFn;
+}
+
+// Create mock functions first
+jest.mock('react-hot-toast', () => {
+  const actualMockError = jest.fn();
+  const actualMockSuccess = jest.fn();
+  const actualMockLoading = jest.fn();
+  const actualMockDismiss = jest.fn();
+  const actualMockPromise = jest.fn().mockImplementation((promise, options) => {
+    if (options.loading) actualMockLoading(options.loading);
     return promise
       .then((data: unknown) => {
         const message =
           typeof options.success === 'function'
             ? options.success(data)
             : options.success;
-        toastMocksContainer.success(message);
+        actualMockSuccess(message);
         return data;
       })
       .catch((error: unknown) => {
@@ -26,31 +36,52 @@ toastMocksContainer.promise = jest
           typeof options.error === 'function'
             ? options.error(error)
             : options.error;
-        toastMocksContainer.error(message);
+        actualMockError(message);
         throw error;
       });
   });
+  return {
+    __esModule: true,
+    default: {
+      error: actualMockError,
+      success: actualMockSuccess,
+      loading: actualMockLoading,
+      promise: actualMockPromise,
+      dismiss: actualMockDismiss,
+    },
+  };
+});
 
-// Mock dependencies
+// --- Mock react-hot-toast ---
+// The factory now defines its own mocks and returns them.
+// We will access these mocks later by importing 'react-hot-toast'
+// (which will resolve to this mock).
+jest.mock('react-hot-toast', () => ({
+  __esModule: true,
+  default: {
+    error: actualMockError,
+    success: actualMockSuccess,
+    loading: actualMockLoading,
+    promise: actualMockPromise,
+    dismiss: actualMockDismiss,
+  },
+  // Toaster: () => <div data-testid="mock-toaster">Mock Toaster</div>,
+}));
+
+// --- Mock other dependencies ---
 jest.mock('@/lib/store/authStore');
 jest.mock('next/navigation', () => ({
   useRouter: jest.fn(),
 }));
 
-// Mock toast with the container
-jest.mock('react-hot-toast', () => ({
-  __esModule: true,
-  default: toastMocksContainer,
-  Toaster: () => <div data-testid="mock-toaster" />,
-}));
-
-// Mock EditProfileForm component
+// --- Mock EditProfileForm (IMPORTANT: Place before importing EditProfilePage) ---
 jest.mock('@/components/profile/EditProfileForm', () => {
   return jest.fn(({ initialData, onSubmit }) => (
     <form
       data-testid="mock-edit-profile-form"
       onSubmit={(e) => {
         e.preventDefault();
+        // This value MUST match what the submit test expects
         onSubmit({ displayName: 'New Submitted Name' });
       }}
     >
@@ -66,55 +97,15 @@ jest.mock('@/components/profile/EditProfileForm', () => {
   ));
 });
 
-// Toast mocks are already configured above
-
-// Mock react-hot-toast with the container
-jest.mock('react-hot-toast', () => ({
-  __esModule: true,
-  default: toastMocksContainer,
-  Toaster: () => <div data-testid="mock-toaster" />,
-}));
-
-// After all mocks are configured, import the dependencies
-import React from 'react';
-import { render, screen, waitFor } from '@testing-library/react';
-import userEvent from '@testing-library/user-event';
+// --- Import the component under test and other necessary modules AFTER mocks ---
 import EditProfilePage from './page';
 import { useAuthStore } from '@/lib/store/authStore';
 import { useRouter } from 'next/navigation';
-import toast from 'react-hot-toast';
+// Import the mocked toast to access its mock functions for assertions
+import toast from 'react-hot-toast'; // This will be our mocked toast object
 
-// Define types for clarity
-type JestMockFn<
-  TReturn = unknown,
-  TArgs extends unknown[] = unknown[],
-> = jest.Mock<TReturn, TArgs>;
-
-interface MockToastInterface {
-  error: JestMockFn<void, [message: string]>;
-  success: JestMockFn<void, [message: string]>;
-  loading: JestMockFn<void, [message: string]>;
-  promise: JestMockFn<unknown, [Promise<unknown>, Record<string, unknown>]>;
-  dismiss: JestMockFn<void, []>;
-}
-
-interface AuthStoreStateActions {
-  isAuthenticated: boolean;
-  isGuest: boolean;
-  isLoading: boolean;
-  userEmail: string | null;
-  displayName: string | null;
-  updateDisplayName: JestMockFn<Promise<void>, [string]>;
-  loginRequest: JestMockFn<void, []>;
-  loginSuccess: JestMockFn<void, [{ email: string; displayName: string }]>;
-  loginFailure: JestMockFn<void, [string]>;
-  loginAsGuest: JestMockFn<void, []>;
-  logout: JestMockFn<void, []>;
-  error: string | null;
-}
-
-// Cast the imported toast to our MockToastInterface for type safety in tests
-const mockedToast = toast as unknown as MockToastInterface;
+// Cast the imported toast to our MockToast interface for type safety in tests
+const mockedToast = toast as unknown as MockToast;
 
 // --- Describe Tests ---
 describe('EditProfilePage', () => {
@@ -123,17 +114,19 @@ describe('EditProfilePage', () => {
   >;
   const mockUseRouter = useRouter as jest.MockedFunction<typeof useRouter>;
 
-  let mockPush: JestMockFn<void, [string]>;
-  let mockUpdateDisplayName: JestMockFn<Promise<void>, [string]>;
-  let defaultAuthStoreState: AuthStoreStateActions;
+  let mockPush: jest.Mock;
+  let mockUpdateDisplayName: jest.Mock;
+  let defaultAuthStoreState: ReturnType<typeof useAuthStore>;
 
   beforeEach(() => {
-    // Clear all mocks. This will clear the call history of functions in toastMocksContainer.
+    // Clear all mocks. This will clear the call history of actualMockError etc.
+    // because they are the functions directly returned by the mock.
     jest.clearAllMocks();
 
     mockPush = jest.fn();
     mockUpdateDisplayName = jest.fn();
 
+    // Updated mockUseRouter.mockReturnValue to use a more specific type instead of 'as any'.
     mockUseRouter.mockReturnValue({
       push: mockPush,
       back: jest.fn(),
@@ -172,7 +165,7 @@ describe('EditProfilePage', () => {
 
   it('redirects and shows error if not authenticated', async () => {
     mockUseAuthStore.mockReturnValue({
-      ...(defaultAuthStoreState as AuthStoreStateActions), // Ensure type safety
+      ...defaultAuthStoreState,
       isAuthenticated: false,
       isGuest: false,
       displayName: null,
@@ -182,7 +175,7 @@ describe('EditProfilePage', () => {
     render(<EditProfilePage />);
 
     await waitFor(() => {
-      // Use the methods from the imported mockedToast (which points to toastMocksContainer)
+      // Use the methods from the imported mockedToast
       expect(mockedToast.error).toHaveBeenCalledWith(
         'Access denied. Please log in.'
       );
@@ -192,7 +185,7 @@ describe('EditProfilePage', () => {
 
   it('redirects and shows error if user is a guest', async () => {
     mockUseAuthStore.mockReturnValue({
-      ...(defaultAuthStoreState as AuthStoreStateActions), // Ensure type safety
+      ...defaultAuthStoreState,
       isAuthenticated: true,
       isGuest: true,
     });
@@ -216,6 +209,9 @@ describe('EditProfilePage', () => {
 
   it('handleEditProfileSubmit updates display name and redirects', async () => {
     const user = userEvent.setup();
+    // updateDisplayName is called inside a setTimeout in the component's handler.
+    // It doesn't need to be a promise itself for toast.promise to work on the *outer* promise.
+    // mockUpdateDisplayName.mockResolvedValueOnce(undefined); // Not strictly needed if it's sync
 
     render(<EditProfilePage />);
 

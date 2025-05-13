@@ -87,7 +87,7 @@ import toast from 'react-hot-toast';
 // Define types for clarity
 type JestMockFn<
   TReturn = unknown,
-  TArgs extends unknown[] = unknown[],
+  TArgs extends unknown[] = unknown[]
 > = jest.Mock<TReturn, TArgs>;
 
 interface MockToastInterface {

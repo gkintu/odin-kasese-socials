@@ -38,16 +38,14 @@ describe('Navbar', () => {
     mockUseAuthStore.mockReturnValue({
       isAuthenticated: false,
       userEmail: null,
-      displayName: null,
       isGuest: false,
-      isLoading: false,
       logout: mockLogout,
+      isLoading: false,
       error: null,
       loginRequest: jest.fn(),
       loginSuccess: jest.fn(),
       loginFailure: jest.fn(),
-      loginAsGuest: jest.fn(),
-      updateDisplayName: jest.fn(), // Added missing mock for updateDisplayName
+      loginAsGuest: jest.fn(), // Add new actions from store
       ...state, // Spread the state to override defaults
     });
   };
@@ -134,10 +132,8 @@ describe('Navbar', () => {
       isGuest: false,
     });
     render(<Navbar />);
-    // Check for Profile link specifically
-    expect(
-      screen.getByRole('link', { name: /^Profile$/i })
-    ).toBeInTheDocument();
+    // Check for Profile link
+    expect(screen.getByRole('link', { name: /profile/i })).toBeInTheDocument();
     // Check for Dashboard link
     expect(
       screen.getByRole('link', { name: /dashboard/i })

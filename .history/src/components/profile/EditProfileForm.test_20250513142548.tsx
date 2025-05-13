@@ -123,8 +123,7 @@ describe('EditProfileForm', () => {
 
     // Example: if clicking the button is supposed to call a prop or a specific function:
     // expect(mockChangePictureProp).toHaveBeenCalled();
-    expect(toast.success).toHaveBeenCalledWith(
-      // Check if toast.success was called
+    expect(toast.success).toHaveBeenCalledWith( // Check if toast.success was called
       'Profile picture upload UI coming soon!',
       { icon: '🖼️' }
     );

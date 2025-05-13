@@ -85,10 +85,7 @@ import { useRouter } from 'next/navigation';
 import toast from 'react-hot-toast';
 
 // Define types for clarity
-type JestMockFn<
-  TReturn = unknown,
-  TArgs extends unknown[] = unknown[],
-> = jest.Mock<TReturn, TArgs>;
+type JestMockFn<TReturn = unknown, TArgs extends unknown[] = unknown[]> = jest.Mock<TReturn, TArgs>;
 
 interface MockToastInterface {
   error: JestMockFn<void, [message: string]>;
@@ -112,15 +109,15 @@ interface AuthStoreStateActions {
   logout: JestMockFn<void, []>;
   error: string | null;
 }
+// Import the mocked toast to access its mock functions for assertions
+import toast from 'react-hot-toast'; // This will be our mocked toast object (toastMocksContainer)
 
 // Cast the imported toast to our MockToastInterface for type safety in tests
 const mockedToast = toast as unknown as MockToastInterface;
 
 // --- Describe Tests ---
 describe('EditProfilePage', () => {
-  const mockUseAuthStore = useAuthStore as jest.MockedFunction<
-    typeof useAuthStore
-  >;
+  const mockUseAuthStore = useAuthStore as jest.MockedFunction<typeof useAuthStore>;
   const mockUseRouter = useRouter as jest.MockedFunction<typeof useRouter>;
 
   let mockPush: JestMockFn<void, [string]>;

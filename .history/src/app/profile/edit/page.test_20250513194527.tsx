@@ -87,7 +87,7 @@ import toast from 'react-hot-toast';
 // Define types for clarity
 type JestMockFn<
   TReturn = unknown,
-  TArgs extends unknown[] = unknown[],
+  TArgs extends unknown[] = unknown[]
 > = jest.Mock<TReturn, TArgs>;
 
 interface MockToastInterface {
@@ -112,6 +112,8 @@ interface AuthStoreStateActions {
   logout: JestMockFn<void, []>;
   error: string | null;
 }
+// Import the mocked toast to access its mock functions for assertions
+import toast from 'react-hot-toast'; // This will be our mocked toast object (toastMocksContainer)
 
 // Cast the imported toast to our MockToastInterface for type safety in tests
 const mockedToast = toast as unknown as MockToastInterface;
