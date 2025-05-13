@@ -1,29 +1,59 @@
-// src/app/page.tsx (example modification)
+// src/app/page.tsx
 import AuthStatusDisplay from '@/components/Auth/AuthStatusDisplay';
+import PostList from '@/components/posts/PostList';
+import { Post, PostAuthor } from '@/types/post';
+
+const generateDummyPosts = (count: number): Post[] => {
+  const posts: Post[] = [];
+  const authors: PostAuthor[] = [
+    { id: 'u1', name: 'Alice Wonderland', avatarUrl: '/img/avatars/alice.png' },
+    { id: 'u2', name: 'Bob The Builder', avatarUrl: '/img/avatars/bob.png' },
+    { id: 'u3', name: 'Charlie Brown', avatarUrl: '/img/avatars/charlie.png' },
+  ];
+
+  for (let i = 1; i <= count; i++) {
+    const author = authors[i % authors.length];
+    posts.push({
+      id: `post${i}`,
+      author,
+      contentText: `This is dummy post number ${i} from ${author.name}. Exploring Kasese Socials today! It's quite exciting to see things develop. #KaseseDev #SocialMedia`,
+      contentImageUrl:
+        i % 2 === 0 ? `/img/posts/sample${(i % 3) + 1}.jpg` : undefined,
+      timestamp: new Date(Date.now() - 1000 * 60 * 60 * i * 0.5),
+      likes: Math.floor(Math.random() * 100),
+      commentsCount: Math.floor(Math.random() * 20),
+    });
+  }
+  return posts;
+};
+
+const DUMMY_POSTS: Post[] = generateDummyPosts(5);
 
 export default function Home() {
   return (
-    <main className="flex min-h-screen flex-col items-center justify-center p-24 bg-gray-100">
-      <div className="z-10 max-w-5xl w-full items-center justify-between font-mono text-sm lg:flex">
-        {/*... existing content... */}
-      </div>
-
-      {/* Let's add a more prominent Kasese Socials welcome message */}
-      <div className="relative flex place-items-center before:absolute before:h-[300px] before:w-full sm:before:w-[480px] before:-translate-x-1/2 before:rounded-full before:bg-gradient-radial before:from-white before:to-transparent before:blur-2xl before:content-[''] after:absolute after:-z-20 after:h-[180px] after:w-full sm:after:w-[240px] after:translate-x-1/3 after:bg-gradient-conic after:from-sky-200 after:via-blue-200 after:blur-2xl after:content-[''] before:dark:bg-gradient-to-br before:dark:from-transparent before:dark:to-blue-700 before:dark:opacity-10 after:dark:from-sky-900 after:dark:via-[#0141ff] after:dark:opacity-40 before:lg:h-[360px]">
-        <h1 className="text-5xl font-bold text-indigo-600 hover:text-indigo-800 transition-colors">
+    <div className="container mx-auto px-4 py-8">
+      <div className="text-center mb-12">
+        <h1 className="text-4xl font-bold text-indigo-700">
           Welcome to Kasese Socials!
         </h1>
+        <p className="text-lg text-gray-600 mt-2">
+          Connect, share, and discover.
+        </p>
       </div>
 
-      {/* Add the AuthStatusDisplay component here for demonstration */}
-      <div className="mt-12">
+      <section aria-labelledby="feed-heading">
+        <h2
+          id="feed-heading"
+          className="text-2xl font-semibold text-gray-800 mb-6 sr-only"
+        >
+          Recent Posts
+        </h2>
+        <PostList posts={DUMMY_POSTS} />
+      </section>
+
+      <div className="mt-12 p-4 border-t border-gray-200">
         <AuthStatusDisplay />
       </div>
-
-      {/* You can remove or modify the default Next.js links/cards below if you wish */}
-      <div className="mb-32 mt-16 grid text-center lg:max-w-5xl lg:w-full lg:mb-0 lg:grid-cols-4 lg:text-left">
-        {/*... existing content... */}
-      </div>
-    </main>
+    </div>
   );
 }

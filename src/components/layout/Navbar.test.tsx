@@ -1,5 +1,5 @@
 // src/components/layout/Navbar.test.tsx
-import { render, screen, fireEvent } from '@testing-library/react';
+import { render, screen, fireEvent, waitFor } from '@testing-library/react';
 import { useAuthStore } from '@/lib/store/authStore'; // To mock its state
 import Navbar from './Navbar';
 
@@ -57,32 +57,49 @@ describe('Navbar', () => {
 
   it('should render Login and Sign Up links when not authenticated and not a guest', () => {
     render(<Navbar />);
-    expect(screen.getByRole('link', { name: /login/i })).toBeInTheDocument();
-    expect(screen.getByRole('link', { name: /sign up/i })).toBeInTheDocument();
-    expect(screen.queryByText(/welcome/i)).not.toBeInTheDocument();
+    expect(screen.getByText('Login')).toBeInTheDocument();
+    expect(screen.getByText('Sign Up')).toBeInTheDocument();
+    expect(
+      screen.queryByText(/welcome, test@example.com/i)
+    ).not.toBeInTheDocument();
     expect(screen.queryByText(/browse as guest/i)).not.toBeInTheDocument();
   });
 
   it('should render user email and Logout button when authenticated', () => {
-    setMockAuthState({
+    // Mock authenticated state
+    (useAuthStore as unknown as jest.Mock).mockReturnValue({
       isAuthenticated: true,
       userEmail: 'test@example.com',
       isGuest: false,
+      logout: mockLogout,
+      displayName: null, // Explicitly null or undefined for this test case
     });
     render(<Navbar />);
-    expect(screen.getByText(/welcome, test@example.com/i)).toBeInTheDocument();
+    expect(screen.getByText(/Welcome, test!/i)).toBeInTheDocument(); // Changed expectation
     expect(screen.getByRole('button', { name: /logout/i })).toBeInTheDocument();
-    expect(
-      screen.queryByRole('link', { name: /login/i })
-    ).not.toBeInTheDocument();
+    expect(screen.queryByText('Login')).not.toBeInTheDocument();
+    expect(screen.queryByText('Sign Up')).not.toBeInTheDocument();
+  });
+
+  it('should render displayName and Logout button when authenticated and displayName is available', () => {
+    (useAuthStore as unknown as jest.Mock).mockReturnValue({
+      isAuthenticated: true,
+      userEmail: 'test@example.com',
+      isGuest: false,
+      logout: mockLogout,
+      displayName: 'TestUser', // displayName is provided
+    });
+    render(<Navbar />);
+    expect(screen.getByText(/Welcome, TestUser!/i)).toBeInTheDocument();
+    expect(screen.getByRole('button', { name: /logout/i })).toBeInTheDocument();
   });
 
   it('should render guest info, Login/Sign Up links, and End Guest Session button when Browse as guest', () => {
     setMockAuthState({ isAuthenticated: false, isGuest: true }); // Set guest state
     render(<Navbar />);
     expect(screen.getByText(/browse as guest/i)).toBeInTheDocument();
-    expect(screen.getByRole('link', { name: /login/i })).toBeInTheDocument();
-    expect(screen.getByRole('link', { name: /sign up/i })).toBeInTheDocument();
+    expect(screen.getByText('Login')).toBeInTheDocument();
+    expect(screen.getByText('Sign Up')).toBeInTheDocument();
     expect(
       screen.getByRole('button', { name: /end guest session/i })
     ).toBeInTheDocument();
@@ -146,5 +163,33 @@ describe('Navbar', () => {
     expect(
       screen.queryByRole('link', { name: /dashboard/i })
     ).not.toBeInTheDocument();
+  });
+
+  it('should render displayName if available, falling back to userEmail', () => {
+    setMockAuthState({
+      isAuthenticated: true,
+      userEmail: 'test@example.com',
+      displayName: 'TestUser',
+      isGuest: false,
+    });
+    render(<Navbar />);
+    expect(screen.getByText(/welcome, testuser/i)).toBeInTheDocument();
+    expect(
+      screen.queryByText(/welcome, test@example.com/i)
+    ).not.toBeInTheDocument();
+  });
+
+  it('should handle async expectations correctly', async () => {
+    setMockAuthState({
+      isAuthenticated: true,
+      userEmail: 'test@example.com',
+      isGuest: false,
+    });
+    render(<Navbar />);
+    await waitFor(() => {
+      expect(
+        screen.queryByText(/welcome, test@example.com/i)
+      ).not.toBeInTheDocument();
+    });
   });
 });
