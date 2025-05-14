@@ -1,5 +1,5 @@
 // src/components/layout/Navbar.test.tsx
-import { render, screen, fireEvent, waitFor } from '@testing-library/react';
+import { render, screen, fireEvent, waitFor, within } from '@testing-library/react';
 import { useAuthStore } from '@/lib/store/authStore'; // To mock its state
 import Navbar from './Navbar';
 
@@ -68,33 +68,45 @@ describe('Navbar', () => {
     expect(screen.queryByText(/browse as guest/i)).not.toBeInTheDocument();
   });
 
-  it('should render user email and not show Login/Sign Up when authenticated', async () => {
+  it('should render user email and Logout button when authenticated', async () => {
     // Mock authenticated state
-    (useAuthStore as unknown as jest.Mock).mockReturnValue({
+    setMockAuthState({
       isAuthenticated: true,
       userEmail: 'test@example.com',
       isGuest: false,
-      logout: mockLogout,
       displayName: null, // Explicitly null or undefined for this test case
     });
     render(<Navbar />);
-    // Check that username part is visible
-    expect(screen.getByText(/test/i)).toBeInTheDocument(); // Username part is shown in the button
+    // Open the user menu
+    const menuButton = screen.getByRole('button', { name: /open user menu/i });
+    fireEvent.click(menuButton);
+
+    // Wait for the menu to be open
+    const menu = await screen.findByRole('menu');
+
+    expect(await within(menu).findByText(/test/i)).toBeInTheDocument(); // Check for username part
+    expect(await within(menu).findByRole('button', { name: /logout/i })).toBeInTheDocument();
     expect(screen.queryByText('Login')).not.toBeInTheDocument();
     expect(screen.queryByText('Sign Up')).not.toBeInTheDocument();
   });
 
-  it('should render displayName when authenticated and displayName is available', async () => {
-    (useAuthStore as unknown as jest.Mock).mockReturnValue({
+  it('should render displayName and Logout button when authenticated and displayName is available', async () => {
+    setMockAuthState({
       isAuthenticated: true,
       userEmail: 'test@example.com',
       isGuest: false,
-      logout: mockLogout,
       displayName: 'TestUser', // displayName is provided
     });
     render(<Navbar />);
-    // Check that displayName is visible in the button
-    expect(screen.getByText(/TestUser/i)).toBeInTheDocument();
+    // Open the user menu
+    const menuButton = screen.getByRole('button', { name: /open user menu/i });
+    fireEvent.click(menuButton);
+
+    // Wait for the menu to be open
+    const menu = await screen.findByRole('menu');
+
+    expect(await within(menu).findByText(/TestUser/i)).toBeInTheDocument();
+    expect(await within(menu).findByRole('button', { name: /logout/i })).toBeInTheDocument();
   });
 
   it('should render guest info, Login/Sign Up links, and End Guest Session button when Browse as guest', () => {
@@ -109,16 +121,23 @@ describe('Navbar', () => {
     expect(screen.queryByText(/welcome/i)).not.toBeInTheDocument();
   });
 
-  // Skip this test for now - it requires accessing dropdown items
-  it.skip('should call logout from store when Logout button is clicked (authenticated user)', async () => {
+  it('should call logout from store when Logout button is clicked (authenticated user)', async () => {
     setMockAuthState({
       isAuthenticated: true,
       userEmail: 'test@example.com',
       isGuest: false,
     });
     render(<Navbar />);
-    // This test is skipped because accessing dropdown menu items is complex in testing
-    // Would need to mock @headlessui/react components or find another way to test this
+    // Open the user menu
+    const menuButton = screen.getByRole('button', { name: /open user menu/i });
+    fireEvent.click(menuButton);
+
+    // Wait for the menu to be open
+    const menu = await screen.findByRole('menu');
+
+    // Click the logout button within the menu
+    fireEvent.click(await within(menu).findByRole('button', { name: /logout/i }));
+    expect(mockLogout).toHaveBeenCalledTimes(1);
   });
 
   it('should call logout from store when End Guest Session button is clicked', () => {
@@ -128,16 +147,28 @@ describe('Navbar', () => {
     expect(mockLogout).toHaveBeenCalledTimes(1); // Same logout action
   });
 
-  // Skip this test for now - it requires accessing dropdown items
-  it.skip('should render Profile and Dashboard links when authenticated', async () => {
+  it('should render Profile and Dashboard links when authenticated', async () => {
     setMockAuthState({
       isAuthenticated: true,
       userEmail: 'test@example.com',
       isGuest: false,
     });
     render(<Navbar />);
-    // This test is skipped because accessing dropdown menu items is complex in testing
-    // Would need to mock @headlessui/react components or find another way to test this
+    // Open the user menu
+    const menuButton = screen.getByRole('button', { name: /open user menu/i });
+    fireEvent.click(menuButton);
+
+    // Wait for the menu to be open
+    const menu = await screen.findByRole('menu');
+
+    // Check for Profile link specifically
+    expect(
+      await within(menu).findByRole('link', { name: /your profile/i })
+    ).toBeInTheDocument();
+    // Check for Dashboard link
+    expect(
+      await within(menu).findByRole('link', { name: /dashboard/i })
+    ).toBeInTheDocument();
   });
 
   it('should NOT render Profile or Dashboard links when not authenticated', () => {
@@ -175,9 +206,22 @@ describe('Navbar', () => {
     });
     render(<Navbar />);
     // Open the user menu
-    fireEvent.click(screen.getByRole('button', { name: /open user menu/i }));
-    expect(await screen.findByText(/TestUser/i)).toBeInTheDocument();
-    expect(screen.queryByText(/test@example.com/i)).not.toBeInTheDocument(); // This part of the email should not be visible if displayName is shown
+    const menuButton = screen.getByRole('button', { name: /open user menu/i });
+    fireEvent.click(menuButton);
+
+    // Wait for the menu to be open
+    const menu = await screen.findByRole('menu');
+
+    // Check that the button itself shows the display name (or part of it)
+    // The menu button text is outside the menu items, so we check screen directly
+    // We also need to ensure the menu is open before checking for text that might be *in* the menu items if the button text isn't unique enough.
+    expect(await screen.findByText(/TestUser/i)).toBeInTheDocument(); // This checks the button text
+    // Check for an item within the menu to confirm it's open, e.g., the Logout button
+    expect(await within(menu).findByRole('button', {name: /logout/i})).toBeInTheDocument();
+
+    expect(
+      screen.queryByText(/test@example.com/i)
+    ).not.toBeInTheDocument(); // This part of the email should not be visible if displayName is shown
   });
 
   it('should handle async expectations correctly', async () => {
@@ -188,10 +232,18 @@ describe('Navbar', () => {
     });
     render(<Navbar />);
     // Open the user menu
-    fireEvent.click(screen.getByRole('button', { name: /open user menu/i }));
+    const menuButton = screen.getByRole('button', { name: /open user menu/i });
+    fireEvent.click(menuButton);
+
+    // Wait for the menu to be open
+    const menu = await screen.findByRole('menu');
+
     await waitFor(async () => {
       // Check for the username part, not the full email with "Welcome,"
+      // This text is on the menu button itself
       expect(await screen.findByText(/test/i)).toBeInTheDocument();
+      // Check for an item within the menu to confirm it's open, e.g., the Logout button
+      expect(await within(menu).findByRole('button', {name: /logout/i})).toBeInTheDocument();
       expect(
         screen.queryByText(/welcome, test@example.com/i)
       ).not.toBeInTheDocument();

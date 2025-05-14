@@ -132,9 +132,7 @@ describe('CreatePostForm', () => {
   it('should allow selecting an image file and show a preview', async () => {
     render(<CreatePostForm onSubmit={mockSubmit} isSubmitting={false} />);
 
-    const fileInput = screen.getByLabelText(
-      /upload image for post/i
-    ) as HTMLInputElement;
+    const fileInput = screen.getByLabelText(/upload image for post/i) as HTMLInputElement;
 
     const dummyFile = new File(['(⌐□_□)'], 'test-image.png', {
       type: 'image/png',
@@ -149,9 +147,7 @@ describe('CreatePostForm', () => {
       expect(mockCreateObjectURL).toHaveBeenCalledWith(dummyFile);
     });
 
-    const previewImage = screen.getByAltText(
-      'Selected preview'
-    ) as HTMLImageElement;
+    const previewImage = screen.getByAltText('Selected preview') as HTMLImageElement;
     expect(previewImage.src).toBe('blob:mocked-url-123');
 
     expect(toast.error).not.toHaveBeenCalled();
@@ -160,9 +156,7 @@ describe('CreatePostForm', () => {
   // Test 9: Shows an error toast for invalid file type
   it('should show an error toast for invalid file type', async () => {
     render(<CreatePostForm onSubmit={mockSubmit} isSubmitting={false} />);
-    const fileInput = screen.getByLabelText(
-      /upload image for post/i
-    ) as HTMLInputElement;
+    const fileInput = screen.getByLabelText(/upload image for post/i) as HTMLInputElement;
     const invalidFile = new File(['content'], 'document.pdf', {
       type: 'application/pdf',
     });
@@ -171,21 +165,15 @@ describe('CreatePostForm', () => {
     fireEvent.change(fileInput);
 
     await waitFor(() => {
-      expect(toast.error).toHaveBeenCalledWith(
-        'Invalid file type. Please select an image.'
-      );
+      expect(toast.error).toHaveBeenCalledWith('Invalid file type. Please select an image.');
     });
     expect(mockCreateObjectURL).not.toHaveBeenCalled();
   });
 
   // Test 10: Revokes object URL on unmount if a blob URL was created
   it('should revoke object URL on unmount if a blob URL was created', () => {
-    const { unmount } = render(
-      <CreatePostForm onSubmit={mockSubmit} isSubmitting={false} />
-    );
-    const fileInput = screen.getByLabelText(
-      /upload image for post/i
-    ) as HTMLInputElement;
+    const { unmount } = render(<CreatePostForm onSubmit={mockSubmit} isSubmitting={false} />);
+    const fileInput = screen.getByLabelText(/upload image for post/i) as HTMLInputElement;
     const dummyFile = new File(['(⌐□_□)'], 'test-image.png', {
       type: 'image/png',
     });

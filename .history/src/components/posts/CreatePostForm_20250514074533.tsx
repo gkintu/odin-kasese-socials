@@ -2,7 +2,6 @@
 import React, { useState, useEffect, useRef } from 'react';
 import { useForm, SubmitHandler } from 'react-hook-form';
 import toast from 'react-hot-toast';
-import Image from 'next/image';
 
 // Form Values Type (can also be imported from a shared types file)
 export interface CreatePostFormValues {
@@ -48,9 +47,7 @@ const CreatePostForm = ({
     }
   };
 
-  const handleImageFileChange = (
-    event: React.ChangeEvent<HTMLInputElement>
-  ) => {
+  const handleImageFileChange = (event: React.ChangeEvent<HTMLInputElement>) => {
     const file = event.target.files?.[0];
     if (imageInputRef.current) imageInputRef.current.value = '';
 
@@ -112,14 +109,11 @@ const CreatePostForm = ({
         {imagePreviewUrl && (
           <div className="mt-2 border border-gray-300 rounded-md p-2">
             <p className="text-sm text-gray-500 mb-1">Image Preview:</p>
-            <div className="relative h-60 w-full">
-              <Image
-                src={imagePreviewUrl}
-                alt="Selected preview"
-                fill
-                className="rounded-md object-contain"
-              />
-            </div>
+            <img
+              src={imagePreviewUrl}
+              alt="Selected preview"
+              className="max-h-60 w-auto rounded-md object-contain"
+            />
           </div>
         )}
         <button

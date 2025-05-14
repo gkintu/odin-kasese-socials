@@ -12,8 +12,13 @@ interface PostCardProps {
 
 const PostCard: React.FC<PostCardProps> = ({ post }) => {
   // Destructure post object for easier access
-  const { author, contentText, contentImageUrl, timestamp, commentsCount } =
-    post;
+  const {
+    author,
+    contentText,
+    contentImageUrl,
+    timestamp,
+    commentsCount,
+  } = post;
 
   const [isLikedByCurrentUser, setIsLikedByCurrentUser] = useState(false);
   const [currentLikes, setCurrentLikes] = useState(post.likes);
@@ -28,9 +33,7 @@ const PostCard: React.FC<PostCardProps> = ({ post }) => {
       setIsLikedByCurrentUser(true);
       toast.success('Liked post! (dummy)', { icon: '❤️' });
     }
-    console.log(
-      `Toggled like for post ${post.id}. New status: ${!isLikedByCurrentUser}`
-    );
+    console.log(`Toggled like for post ${post.id}. New status: ${!isLikedByCurrentUser}`);
   };
 
   return (
@@ -90,7 +93,7 @@ const PostCard: React.FC<PostCardProps> = ({ post }) => {
         <div className="flex space-x-4">
           <button
             onClick={handleLikeToggle}
-            aria-label={isLikedByCurrentUser ? 'Unlike post' : 'Like post'}
+            aria-label={isLikedByCurrentUser ? "Unlike post" : "Like post"}
             className={`flex-1 py-2 px-4 border rounded-md focus:outline-none focus:ring-2 focus:ring-offset-2 transition-colors
               ${
                 isLikedByCurrentUser

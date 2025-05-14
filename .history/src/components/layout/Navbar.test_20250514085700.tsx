@@ -23,6 +23,21 @@ jest.mock('next/navigation', () => ({
   }),
   usePathname: jest.fn(() => '/'), // Add mock for usePathname
 }));
+    return <Component>{typeof children === 'function' ? children({}) : children}</Component>;
+  },
+  Transition: ({ children }) => children,
+  Menu: {
+    Button: ({ children, ...props }) => (
+      <button type="button" {...props}>
+        {typeof children === 'function' ? children({}) : children}
+      </button>
+    ),
+    Items: ({ children }) => <div data-testid="dropdown-menu">{children}</div>,
+    Item: ({ children }) => (
+      <div>{typeof children === 'function' ? children({ active: true }) : children}</div>
+    ),
+  },
+}));
 
 describe('Navbar', () => {
   // Cast the mock to the correct type
@@ -128,16 +143,24 @@ describe('Navbar', () => {
     expect(mockLogout).toHaveBeenCalledTimes(1); // Same logout action
   });
 
-  // Skip this test for now - it requires accessing dropdown items
-  it.skip('should render Profile and Dashboard links when authenticated', async () => {
+  it('should render Profile and Dashboard links when authenticated', async () => {
     setMockAuthState({
       isAuthenticated: true,
       userEmail: 'test@example.com',
       isGuest: false,
     });
     render(<Navbar />);
-    // This test is skipped because accessing dropdown menu items is complex in testing
-    // Would need to mock @headlessui/react components or find another way to test this
+    // Open the user menu
+    fireEvent.click(screen.getByRole('button', { name: /open user menu/i }));
+
+    // Check for Profile link specifically
+    expect(
+      await screen.findByRole('link', { name: /your profile/i })
+    ).toBeInTheDocument();
+    // Check for Dashboard link
+    expect(
+      await screen.findByRole('link', { name: /dashboard/i })
+    ).toBeInTheDocument();
   });
 
   it('should NOT render Profile or Dashboard links when not authenticated', () => {
@@ -177,7 +200,9 @@ describe('Navbar', () => {
     // Open the user menu
     fireEvent.click(screen.getByRole('button', { name: /open user menu/i }));
     expect(await screen.findByText(/TestUser/i)).toBeInTheDocument();
-    expect(screen.queryByText(/test@example.com/i)).not.toBeInTheDocument(); // This part of the email should not be visible if displayName is shown
+    expect(
+      screen.queryByText(/test@example.com/i)
+    ).not.toBeInTheDocument(); // This part of the email should not be visible if displayName is shown
   });
 
   it('should handle async expectations correctly', async () => {

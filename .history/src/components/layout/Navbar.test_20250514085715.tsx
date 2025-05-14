@@ -23,6 +23,21 @@ jest.mock('next/navigation', () => ({
   }),
   usePathname: jest.fn(() => '/'), // Add mock for usePathname
 }));
+    return <Component>{typeof children === 'function' ? children({}) : children}</Component>;
+  },
+  Transition: ({ children }) => children,
+  Menu: {
+    Button: ({ children, ...props }) => (
+      <button type="button" {...props}>
+        {typeof children === 'function' ? children({}) : children}
+      </button>
+    ),
+    Items: ({ children }) => <div data-testid="dropdown-menu">{children}</div>,
+    Item: ({ children }) => (
+      <div>{typeof children === 'function' ? children({ active: true }) : children}</div>
+    ),
+  },
+}));
 
 describe('Navbar', () => {
   // Cast the mock to the correct type
@@ -128,7 +143,7 @@ describe('Navbar', () => {
     expect(mockLogout).toHaveBeenCalledTimes(1); // Same logout action
   });
 
-  // Skip this test for now - it requires accessing dropdown items
+  // Skip this test for now - it requires accessing dropdown items 
   it.skip('should render Profile and Dashboard links when authenticated', async () => {
     setMockAuthState({
       isAuthenticated: true,
@@ -177,7 +192,9 @@ describe('Navbar', () => {
     // Open the user menu
     fireEvent.click(screen.getByRole('button', { name: /open user menu/i }));
     expect(await screen.findByText(/TestUser/i)).toBeInTheDocument();
-    expect(screen.queryByText(/test@example.com/i)).not.toBeInTheDocument(); // This part of the email should not be visible if displayName is shown
+    expect(
+      screen.queryByText(/test@example.com/i)
+    ).not.toBeInTheDocument(); // This part of the email should not be visible if displayName is shown
   });
 
   it('should handle async expectations correctly', async () => {
