@@ -1,18 +1,11 @@
 // filepath: /home/kgk256/repos/odin-kasese-socials/src/app/profile/edit/page.test.tsx
 import React from 'react';
-import {
-  render,
-  screen,
-  fireEvent,
-  waitFor,
-  act,
-} from '@testing-library/react';
+import { render, screen, fireEvent, waitFor, act } from '@testing-library/react';
 import '@testing-library/jest-dom';
 import EditProfilePage from './page';
 import { useAuthStore } from '@/lib/store/authStore';
 import { useRouter } from 'next/navigation';
 import toast from 'react-hot-toast';
-import { EditProfileFormValues } from '@/components/profile/EditProfileForm';
 
 // Mock dependencies
 jest.mock('next/navigation', () => ({
@@ -81,12 +74,10 @@ describe('EditProfilePage', () => {
     });
 
     (toast.promise as jest.Mock).mockImplementation((promise, { success }) => {
-      return promise
-        .then(() => {
-          if (typeof success === 'function') success();
-          return Promise.resolve();
-        })
-        .catch(() => Promise.resolve()); // Simplified for testing
+      return promise.then(() => {
+        if (typeof success === 'function') success();
+        return Promise.resolve();
+      }).catch(() => Promise.resolve()); // Simplified for testing
     });
     jest.clearAllMocks();
   });
@@ -137,7 +128,9 @@ describe('EditProfilePage', () => {
 
   it('renders the edit profile form when authenticated and not a guest', () => {
     render(<EditProfilePage />);
-    expect(screen.getByText('Edit Your Profile')).toBeInTheDocument();
+    expect(
+      screen.getByText('Edit Your Profile')
+    ).toBeInTheDocument();
     expect(screen.getByTestId('edit-profile-form')).toBeInTheDocument();
     expect(
       screen.getByText(
@@ -179,7 +172,7 @@ describe('EditProfilePage', () => {
     render(<EditProfilePage />);
     expect(screen.getByTestId('displayName-input')).toHaveValue('emailonly');
   });
-
+  
   it('populates form with empty string for displayName if both displayName and userEmail are null/undefined', () => {
     (useAuthStore as unknown as jest.Mock).mockReturnValueOnce({
       isAuthenticated: true,
@@ -196,10 +189,8 @@ describe('EditProfilePage', () => {
   describe('Form Submission', () => {
     it('handles successful submission with displayName change', async () => {
       const newDisplayName = 'New Display Name';
-      mockEditProfileFormSubmit.mockReturnValue({
-        displayName: newDisplayName,
-      });
-
+      mockEditProfileFormSubmit.mockReturnValue({ displayName: newDisplayName });
+      
       render(<EditProfilePage />);
       fireEvent.submit(screen.getByTestId('edit-profile-form'));
 
@@ -210,7 +201,7 @@ describe('EditProfilePage', () => {
       await waitFor(() => {
         expect(toast.promise).toHaveBeenCalled();
       });
-
+      
       await waitFor(() => {
         expect(mockUpdateDisplayName).toHaveBeenCalledWith(newDisplayName);
       });
@@ -232,7 +223,7 @@ describe('EditProfilePage', () => {
       await waitFor(() => {
         expect(toast.promise).toHaveBeenCalled();
       });
-
+      
       await waitFor(() => {
         expect(mockUpdateDisplayName).not.toHaveBeenCalled();
       });
@@ -250,8 +241,8 @@ describe('EditProfilePage', () => {
         displayName: null,
         updateDisplayName: mockUpdateDisplayName,
       });
-
-      render(<EditProfilePage />);
+      
+      render(<EditProfilePage />); 
 
       // No submission event possible if form is not rendered.
       expect(screen.getByText('Access restricted.')).toBeInTheDocument();
@@ -260,28 +251,27 @@ describe('EditProfilePage', () => {
       expect(mockUpdateDisplayName).not.toHaveBeenCalled();
     });
 
+
     it('handles submission attempt when user is guest', async () => {
-      (useAuthStore as unknown as jest.Mock).mockReturnValueOnce({
-        isLoading: false,
-        isAuthenticated: true, // Authenticated but a guest
-        isGuest: true,
-        userEmail: 'guest@example.com',
-        displayName: 'Guest User',
-        updateDisplayName: mockUpdateDisplayName,
-      });
+        (useAuthStore as unknown as jest.Mock).mockReturnValueOnce({
+            isLoading: false,
+            isAuthenticated: true, // Authenticated but a guest
+            isGuest: true,
+            userEmail: 'guest@example.com',
+            displayName: 'Guest User',
+            updateDisplayName: mockUpdateDisplayName,
+        });
 
-      render(<EditProfilePage />);
+        render(<EditProfilePage />); 
 
-      expect(screen.getByText('Access restricted.')).toBeInTheDocument();
-      expect(toast.error).not.toHaveBeenCalled();
-      expect(mockRouterPush).not.toHaveBeenCalled();
-      expect(mockUpdateDisplayName).not.toHaveBeenCalled();
+        expect(screen.getByText('Access restricted.')).toBeInTheDocument();
+        expect(toast.error).not.toHaveBeenCalled();
+        expect(mockRouterPush).not.toHaveBeenCalled();
+        expect(mockUpdateDisplayName).not.toHaveBeenCalled();
     });
   });
 });
 
-export const setMockEditProfileFormSubmitData = (
-  data: EditProfileFormValues
-) => {
+export const setMockEditProfileFormSubmitData = (data: any) => {
   mockEditProfileFormSubmit.mockReturnValue(data);
 };

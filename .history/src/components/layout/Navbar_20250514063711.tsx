@@ -1,15 +1,19 @@
 // src/components/layout/Navbar.tsx
 'use client';
 
-import React from 'react';
 import Link from 'next/link';
 import { useAuthStore } from '@/lib/store/authStore';
 import toast from 'react-hot-toast';
 import { useRouter, usePathname } from 'next/navigation';
 
-const Navbar: React.FC = () => {
-  const { isAuthenticated, isGuest, userEmail, displayName, logout } =
-    useAuthStore();
+const Navbar = (): JSX.Element => {
+  const {
+    isAuthenticated,
+    isGuest,
+    userEmail,
+    displayName,
+    logout
+  } = useAuthStore();
   const router = useRouter();
   const pathname = usePathname();
 
@@ -54,6 +58,7 @@ const Navbar: React.FC = () => {
               </Link>
               <button
                 onClick={handleLogout}
+                aria-label="Logout"
                 className="bg-red-500 hover:bg-red-700 text-white font-bold py-2 px-4 rounded"
               >
                 Logout
@@ -81,7 +86,8 @@ const Navbar: React.FC = () => {
                 Sign Up
               </Link>
               <button
-                onClick={handleLogout} // Ends guest session
+                onClick={handleLogout}
+                aria-label="End guest session"
                 className="bg-yellow-500 hover:bg-yellow-600 text-white font-bold py-2 px-4 rounded"
               >
                 End Guest Session

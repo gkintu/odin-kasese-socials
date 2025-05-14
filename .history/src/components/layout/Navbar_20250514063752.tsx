@@ -3,17 +3,18 @@
 
 import React from 'react';
 import Link from 'next/link';
-import { useAuthStore } from '@/lib/store/authStore';
+import { usePathname, useRouter } from 'next/navigation';
 import toast from 'react-hot-toast';
-import { useRouter, usePathname } from 'next/navigation';
 
-const Navbar: React.FC = () => {
+import { useAuthStore } from '@/lib/store/authStore';
+
+const Navbar = (): JSX.Element => {
   const { isAuthenticated, isGuest, userEmail, displayName, logout } =
     useAuthStore();
   const router = useRouter();
   const pathname = usePathname();
 
-  const handleLogout = () => {
+  const handleLogout = (): void => {
     const message = isGuest ? 'Guest session ended' : 'Logged out successfully';
     logout();
     toast.success(message);

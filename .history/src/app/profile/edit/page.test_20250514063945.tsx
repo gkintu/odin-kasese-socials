@@ -12,7 +12,6 @@ import EditProfilePage from './page';
 import { useAuthStore } from '@/lib/store/authStore';
 import { useRouter } from 'next/navigation';
 import toast from 'react-hot-toast';
-import { EditProfileFormValues } from '@/components/profile/EditProfileForm';
 
 // Mock dependencies
 jest.mock('next/navigation', () => ({
@@ -280,8 +279,6 @@ describe('EditProfilePage', () => {
   });
 });
 
-export const setMockEditProfileFormSubmitData = (
-  data: EditProfileFormValues
-) => {
+export const setMockEditProfileFormSubmitData = (data: EditProfileFormValues) => {
   mockEditProfileFormSubmit.mockReturnValue(data);
 };

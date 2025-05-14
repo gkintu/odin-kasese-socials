@@ -280,8 +280,6 @@ describe('EditProfilePage', () => {
   });
 });
 
-export const setMockEditProfileFormSubmitData = (
-  data: EditProfileFormValues
-) => {
+export const setMockEditProfileFormSubmitData = (data: EditProfileFormValues) => {
   mockEditProfileFormSubmit.mockReturnValue(data);
 };
