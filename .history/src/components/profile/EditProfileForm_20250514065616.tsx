@@ -1,106 +1,96 @@
 // src/components/profile/EditProfileForm.tsx
-import React, { useState, useEffect, useRef } from 'react';
-import { useForm, SubmitHandler } from 'react-hook-form';
-import toast from 'react-hot-toast';
+import React, { useState, useEffect, useRef } from 'react'; // Added useState, useEffect, useRef
+import { useForm, SubmitHandler } from 'react-hook-form'; // Removed unused Controller
+import toast from 'react-hot-toast'; // For dummy avatar upload feedback
 
+// Define Form Values Type (can be moved to a shared types file if preferred)
 export interface EditProfileFormValues {
   displayName: string;
   bio: string;
-  // We are not yet including the image file in the form submission data for this phase
+  // avatarFile?: FileList; // For future actual file upload
 }
 
+// Define Props for the component
 interface EditProfileFormProps {
-  onSubmit: SubmitHandler<EditProfileFormValues>;
+  onSubmit: SubmitHandler<EditProfileFormValues>; // Function to call on successful submission
   initialData: {
+    // Initial data to pre-fill the form
     displayName: string;
     bio: string;
-    currentAvatarUrl?: string; // URL of the user's current avatar
+    currentAvatarUrl?: string; // Add current avatar URL to initialData
   };
-  // onCancel?: () => void;
+  // onCancel?: () => void; // Optional cancel handler
 }
 
 const EditProfileForm: React.FC<EditProfileFormProps> = ({
   onSubmit,
   initialData,
 }) => {
+  // Initialize React Hook Form
   const {
     register,
     handleSubmit,
-    formState: { errors, isSubmitting },
+    // control, // Removed unused control
+    formState: { errors, isSubmitting }, // Get errors and submission state
   } = useForm<EditProfileFormValues>({
-    defaultValues: {
-      displayName: initialData.displayName,
-      bio: initialData.bio,
-    },
+    defaultValues: initialData, // Pre-fill form with initialData
   });
 
+  // State for the selected image file
   const [selectedImageFile, setSelectedImageFile] = useState<File | null>(null);
-  // Initialize with current avatar or a default if none provided
-  const [imagePreviewUrl, setImagePreviewUrl] = useState<string | null>(
-    initialData.currentAvatarUrl || '/img/default-avatar.png'
-  );
+  // State for the URL of the image preview
+  const [imagePreviewUrl, setImagePreviewUrl] = useState<string | null>(initialData.currentAvatarUrl || '/img/default-avatar.png'); // Default fallback
+
+  // Ref for the hidden file input
   const fileInputRef = useRef<HTMLInputElement>(null);
 
+  // Dummy handler for profile picture change
+  const handleAvatarChangeClick = () => {
+    toast.success('Profile picture upload UI coming soon!', { icon: '🖼️' });
+  };
+
   const handleFileChange = (event: React.ChangeEvent<HTMLInputElement>) => {
+    // Get the first file from the FileList
     const file = event.target.files?.[0];
-    if (fileInputRef.current) {
-      // Always reset the file input to allow re-selection of the same file
-      fileInputRef.current.value = '';
-    }
 
     if (file) {
-      const allowedTypes = [
-        'image/png',
-        'image/jpeg',
-        'image/gif',
-        'image/webp',
-      ];
+      // Basic Client-Side Validation (Example)
+      const allowedTypes = ['image/png', 'image/jpeg', 'image/gif', 'image/webp'];
       if (!allowedTypes.includes(file.type)) {
-        toast.error('Invalid file type. Please use PNG, JPG, GIF, or WEBP.');
-        return;
-      }
-      const maxSizeInBytes = 2 * 1024 * 1024;
-      if (file.size > maxSizeInBytes) {
-        toast.error('File too large. Max 2MB.');
+        toast.error('Invalid file type. Please select an image (PNG, JPG, GIF, WEBP).');
+        // Clear the file input value to allow re-selection of the same file if needed after error
+        if (fileInputRef.current) fileInputRef.current.value = '';
         return;
       }
 
+      const maxSizeInBytes = 2 * 1024 * 1024; // 2MB
+      if (file.size > maxSizeInBytes) {
+        toast.error('File is too large. Maximum size is 2MB.');
+        if (fileInputRef.current) fileInputRef.current.value = '';
+        return;
+      }
+
+      // If a previous preview URL exists, revoke it to free up memory
       if (imagePreviewUrl && imagePreviewUrl.startsWith('blob:')) {
         URL.revokeObjectURL(imagePreviewUrl);
       }
+
+      // Store the selected file
       setSelectedImageFile(file);
+      // Create and set a new preview URL
       const newPreviewUrl = URL.createObjectURL(file);
       setImagePreviewUrl(newPreviewUrl);
+    } else {
+      // No file selected, or selection was cancelled
+      // Optionally, reset to default if desired, or do nothing
+      // For now, we do nothing if no file is picked, existing preview remains
     }
-  };
-
-  useEffect(() => {
-    const currentPreview = imagePreviewUrl;
-    return () => {
-      if (currentPreview && currentPreview.startsWith('blob:')) {
-        URL.revokeObjectURL(currentPreview);
-      }
-    };
-  }, [imagePreviewUrl]);
-
-  // The main onSubmit prop is for displayName and bio only for now.
-  // selectedImageFile is available in state if needed for actual upload later.
-  const formSubmitHandler: SubmitHandler<EditProfileFormValues> = (data) => {
-    console.log('Form data to submit (text fields):', data);
-    if (selectedImageFile) {
-      console.log(
-        'Selected image file for upload (dummy):',
-        selectedImageFile.name,
-        selectedImageFile.type
-      );
-      // In a real app, you'd append selectedImageFile to FormData here.
-    }
-    onSubmit(data); // Call the original onSubmit passed from the page
   };
 
   return (
-    <form onSubmit={handleSubmit(formSubmitHandler)} className="space-y-6">
-      {/* Display Name Field (as before) */}
+    // Handle form submission using RHF's handleSubmit
+    <form onSubmit={handleSubmit(onSubmit)} className="space-y-6">
+      {/* Display Name Field */}
       <div>
         <label
           htmlFor="displayName"
@@ -109,10 +99,13 @@ const EditProfileForm: React.FC<EditProfileFormProps> = ({
           Display Name
         </label>
         <input
-          id="displayName"
           type="text"
+          id="displayName"
           {...register('displayName', { required: 'Display name is required' })}
-          className="mt-1 block w-full px-3 py-2 border border-gray-300 rounded-md shadow-sm focus:outline-none focus:ring-indigo-500 focus:border-indigo-500 sm:text-sm"
+          className={`mt-1 block w-full px-3 py-2 border ${
+            errors.displayName ? 'border-red-500' : 'border-gray-300'
+          } rounded-md shadow-sm focus:outline-none focus:ring-indigo-500 focus:border-indigo-500 sm:text-sm`}
+          aria-invalid={errors.displayName ? 'true' : 'false'}
         />
         {errors.displayName && (
           <p className="mt-1 text-sm text-red-600">
@@ -121,7 +114,7 @@ const EditProfileForm: React.FC<EditProfileFormProps> = ({
         )}
       </div>
 
-      {/* Bio Field (as before) */}
+      {/* Bio Field */}
       <div>
         <label
           htmlFor="bio"
@@ -138,19 +131,23 @@ const EditProfileForm: React.FC<EditProfileFormProps> = ({
               message: 'Bio must be 200 characters or less',
             },
           })}
-          className="mt-1 block w-full px-3 py-2 border border-gray-300 rounded-md shadow-sm focus:outline-none focus:ring-indigo-500 focus:border-indigo-500 sm:text-sm"
+          className={`mt-1 block w-full px-3 py-2 border ${
+            errors.bio ? 'border-red-500' : 'border-gray-300'
+          } rounded-md shadow-sm focus:outline-none focus:ring-indigo-500 focus:border-indigo-500 sm:text-sm`}
+          aria-invalid={errors.bio ? 'true' : 'false'}
         />
         {errors.bio && (
           <p className="mt-1 text-sm text-red-600">{errors.bio.message}</p>
         )}
       </div>
 
-      {/* Profile Picture Section (Updated) */}
+      {/* Profile Picture Section */}
       <div>
         <label className="block text-sm font-medium text-gray-700 mb-1">
           Profile Picture
         </label>
         <div className="mt-1 flex items-center space-x-4">
+          {/* Image Preview or Current Avatar */}
           <span className="inline-block h-20 w-20 rounded-full overflow-hidden bg-gray-200 flex items-center justify-center shadow">
             {imagePreviewUrl ? (
               // eslint-disable-next-line @next/next/no-img-element
@@ -160,6 +157,7 @@ const EditProfileForm: React.FC<EditProfileFormProps> = ({
                 className="h-full w-full object-cover"
               />
             ) : (
+              // Default placeholder icon if no preview
               <svg
                 className="h-12 w-12 text-gray-400"
                 fill="currentColor"
@@ -169,6 +167,7 @@ const EditProfileForm: React.FC<EditProfileFormProps> = ({
               </svg>
             )}
           </span>
+          {/* Button to trigger file input */}
           <button
             type="button"
             onClick={() => fileInputRef.current?.click()}
@@ -176,6 +175,7 @@ const EditProfileForm: React.FC<EditProfileFormProps> = ({
           >
             Change Picture
           </button>
+          {/* Hidden File Input */}
           <input
             type="file"
             ref={fileInputRef}
@@ -186,15 +186,26 @@ const EditProfileForm: React.FC<EditProfileFormProps> = ({
           />
         </div>
         <p className="mt-1 text-xs text-gray-500">
-          PNG, JPG, GIF, WEBP up to 2MB (dummy limit).
+          PNG, JPG, GIF, WEBP up to 2MB (dummy limit for now).
         </p>
       </div>
 
-      {/* Form Actions (as before) */}
+      {/* Form Actions */}
       <div className="flex justify-end space-x-3 pt-4">
+        {/* Optional Cancel Button
+        {onCancel && (
+          <button
+            type="button"
+            onClick={onCancel}
+            className="px-4 py-2 border border-gray-300 rounded-md text-sm font-medium text-gray-700 hover:bg-gray-50 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-indigo-500"
+          >
+            Cancel
+          </button>
+        )}
+        */}
         <button
           type="submit"
-          disabled={isSubmitting}
+          disabled={isSubmitting} // Disable button while submitting
           className="px-6 py-2 border border-transparent rounded-md shadow-sm text-sm font-medium text-white bg-indigo-600 hover:bg-indigo-700 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-indigo-500 disabled:opacity-50"
         >
           {isSubmitting ? 'Saving...' : 'Save Changes'}

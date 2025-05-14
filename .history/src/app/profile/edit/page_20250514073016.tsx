@@ -62,10 +62,7 @@ const EditProfilePage = () => {
     );
   }
 
-  const currentUserAvatar =
-    userEmail === 'user@example.com'
-      ? '/img/avatars/user1.png'
-      : '/img/default-avatar.png'; // Example logic for current avatar
+  const currentUserAvatar = userEmail === 'user@example.com' ? '/img/avatars/user1.png' : '/img/default-avatar.png'; // Example logic for current avatar
 
   const initialData = {
     displayName: displayName || userEmail?.split('@')[0] || '',

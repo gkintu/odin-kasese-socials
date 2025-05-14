@@ -114,18 +114,15 @@ describe('EditProfileForm', () => {
 
   // Test for profile picture change functionality (if implemented within this form)
   it('handles profile picture change button click by triggering file input', async () => {
+    const user = userEvent.setup();
     render(<EditProfileForm onSubmit={mockSubmit} initialData={initialData} />);
     const changePictureButton = screen.getByRole('button', {
       name: /change picture/i,
     });
-    const fileInput = screen.getByLabelText(
-      /upload profile picture/i
-    ) as HTMLInputElement;
-    const fileInputClickSpy = jest
-      .spyOn(fileInput, 'click')
-      .mockImplementation(() => {}); // Mock to prevent actual dialog
+    const fileInput = screen.getByLabelText(/upload profile picture/i) as HTMLInputElement;
+    const fileInputClickSpy = jest.spyOn(fileInput, 'click').mockImplementation(() => {}); // Mock to prevent actual dialog
 
-    await userEvent.click(changePictureButton);
+    await user.click(changePictureButton);
 
     expect(fileInputClickSpy).toHaveBeenCalledTimes(1);
 
@@ -133,15 +130,13 @@ describe('EditProfileForm', () => {
   });
 
   it('should allow selecting an image file and show a preview', async () => {
+    const user = userEvent.setup();
     render(<EditProfileForm onSubmit={mockSubmit} initialData={initialData} />);
 
-    const fileInput = screen.getByLabelText(
-      /upload profile picture/i
-    ) as HTMLInputElement;
+    const fileInput = screen.getByLabelText(/upload profile picture/i) as HTMLInputElement;
+    const changePicButton = screen.getByRole('button', { name: /change picture/i });
 
-    const dummyFile = new File(['(⌐□_□)'], 'chucknorris.png', {
-      type: 'image/png',
-    });
+    const dummyFile = new File(['(⌐□_□)'], 'chucknorris.png', { type: 'image/png' });
 
     Object.defineProperty(fileInput, 'files', {
       value: [dummyFile],
@@ -152,9 +147,7 @@ describe('EditProfileForm', () => {
       expect(mockCreateObjectURL).toHaveBeenCalledWith(dummyFile);
     });
 
-    const previewImage = screen.getByAltText(
-      'Profile preview'
-    ) as HTMLImageElement;
+    const previewImage = screen.getByAltText('Profile preview') as HTMLImageElement;
     expect(previewImage.src).toBe('blob:mocked-url-123');
 
     expect(toast.error).not.toHaveBeenCalled();
@@ -162,34 +155,22 @@ describe('EditProfileForm', () => {
 
   it('should show an error toast for invalid file type', async () => {
     render(<EditProfileForm onSubmit={mockSubmit} initialData={initialData} />);
-    const fileInput = screen.getByLabelText(
-      /upload profile picture/i
-    ) as HTMLInputElement;
-    const invalidFile = new File(['content'], 'document.pdf', {
-      type: 'application/pdf',
-    });
+    const fileInput = screen.getByLabelText(/upload profile picture/i) as HTMLInputElement;
+    const invalidFile = new File(['content'], 'document.pdf', { type: 'application/pdf' });
 
     Object.defineProperty(fileInput, 'files', { value: [invalidFile] });
     fireEvent.change(fileInput);
 
     await waitFor(() => {
-      expect(toast.error).toHaveBeenCalledWith(
-        'Invalid file type. Please use PNG, JPG, GIF, or WEBP.'
-      );
+      expect(toast.error).toHaveBeenCalledWith('Invalid file type. Please use PNG, JPG, GIF, or WEBP.');
     });
     expect(mockCreateObjectURL).not.toHaveBeenCalled();
   });
 
   it('should show an error toast for oversized file', async () => {
     render(<EditProfileForm onSubmit={mockSubmit} initialData={initialData} />);
-    const fileInput = screen.getByLabelText(
-      /upload profile picture/i
-    ) as HTMLInputElement;
-    const oversizedFile = new File(
-      [new ArrayBuffer(3 * 1024 * 1024)],
-      'largefile.png',
-      { type: 'image/png' }
-    );
+    const fileInput = screen.getByLabelText(/upload profile picture/i) as HTMLInputElement;
+    const oversizedFile = new File([new ArrayBuffer(3 * 1024 * 1024)], 'largefile.png', { type: 'image/png' });
 
     Object.defineProperty(fileInput, 'files', { value: [oversizedFile] });
     fireEvent.change(fileInput);
@@ -201,15 +182,9 @@ describe('EditProfileForm', () => {
   });
 
   it('should revoke object URL on unmount if a blob URL was created', () => {
-    const { unmount } = render(
-      <EditProfileForm onSubmit={mockSubmit} initialData={initialData} />
-    );
-    const fileInput = screen.getByLabelText(
-      /upload profile picture/i
-    ) as HTMLInputElement;
-    const dummyFile = new File(['(⌐□_□)'], 'chucknorris.png', {
-      type: 'image/png',
-    });
+    const { unmount } = render(<EditProfileForm onSubmit={mockSubmit} initialData={initialData} />);
+    const fileInput = screen.getByLabelText(/upload profile picture/i) as HTMLInputElement;
+    const dummyFile = new File(['(⌐□_□)'], 'chucknorris.png', { type: 'image/png' });
 
     Object.defineProperty(fileInput, 'files', { value: [dummyFile] });
     fireEvent.change(fileInput);
